@@ -135,3 +135,19 @@ NAT（网络地址转换）模式是让虚拟机借助NAT的功能，通过宿�
 Dig和nslookup都不会受影响，因为它们都会忽略掉hosts文件，只有ping命令和在浏览器打开网站是受影响的。
 
  ![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image21.png)
+
+## Directly Spoof Response to User
+
+假设攻击者和客户端处在同一个局域网，当客户端的用户使用域名请求页面时，攻击者可以监听到客户端发出的DNS请求，然后抢在本地DNS服务器之前发回一个假的DNS应答，使得客户端收到一个假的IP地址，从而欺骗客户端。
+
+这里我们使用netwag的105工具包来实现，打开netwag后界面如下图所示，双击105号工具，然后到Form选项卡进行设置。
+
+ ![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image22.png)
+
+ ![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image23.png)
+
+在Form界面只需要设置好要攻击的域名以及想要更换的IP地址就可以了，其他参数可以帮助我们更精确地实现，滑动滑条还会看到一个filter参数，可以使用过滤表达式来限定接收的包，比方说我们只想修改客户端一台机器，这样就可以设置一个过滤表达式ip host 192.168.153.100。设置好后点击Run按钮就会进行Running界面开始监听DNS包，并且在监听到符合条件的包之后按照设定返回DNS应答。
+
+ ![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image24.png)
+
+这时再在客户端dig example.com可以发现DNS应答已被篡改为恶意IP。**注意**！因为不能保证每次都是攻击者伪造的DNS应答早于正确DNS应答返回到客户端，所以客户端打开example.com时可能到达正确的页面，也可能变为访问我们伪造的恶意IP，不是百分百能成功的。
