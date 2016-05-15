@@ -125,3 +125,13 @@ NAT（网络地址转换）模式是让虚拟机借助NAT的功能，通过宿�
 ![test](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image19.png)
 
 在配置好的客户端dig域名可以看到使用的服务器是本地DNS服务器，并且能得到正确的ANSWER。
+
+## Attackers have already compromised the victim’s machine
+
+第一种攻击方式是指黑客已经入侵到客户端，可以修改客户端的文件。这里直接修改客户端的hosts文件，把一个域名重定向到另一个我们指定的IP地址就可以了。使用sudo gedit /etc/hosts打开hosts文件，这里把www.baidu.com解析为1.2.3.4，可以看到ping的时候这个篡改确实生效了。
+
+ ![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image20.png)
+
+Dig和nslookup都不会受影响，因为它们都会忽略掉hosts文件，只有ping命令和在浏览器打开网站是受影响的。
+
+ ![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image21.png)
