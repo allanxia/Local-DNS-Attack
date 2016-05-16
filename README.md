@@ -130,11 +130,11 @@ NAT（网络地址转换）模式是让虚拟机借助NAT的功能，通过宿�
 
 第一种攻击方式是指黑客已经入侵到客户端，可以修改客户端的文件。这里直接修改客户端的hosts文件，把一个域名重定向到另一个我们指定的IP地址就可以了。使用sudo gedit /etc/hosts打开hosts文件，这里把www.baidu.com解析为1.2.3.4，可以看到ping的时候这个篡改确实生效了。
 
- ![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image20.png)
+![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image20.png)
 
 Dig和nslookup都不会受影响，因为它们都会忽略掉hosts文件，只有ping命令和在浏览器打开网站是受影响的。
 
- ![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image21.png)
+![attack1](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image21.png)
 
 ## Directly Spoof Response to User
 
@@ -142,12 +142,26 @@ Dig和nslookup都不会受影响，因为它们都会忽略掉hosts文件，只�
 
 这里我们使用netwag的105工具包来实现，打开netwag后界面如下图所示，双击105号工具，然后到Form选项卡进行设置。
 
- ![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image22.png)
+![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image22.png)
 
- ![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image23.png)
+![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image23.png)
 
 在Form界面只需要设置好要攻击的域名以及想要更换的IP地址就可以了，其他参数可以帮助我们更精确地实现，滑动滑条还会看到一个filter参数，可以使用过滤表达式来限定接收的包，比方说我们只想修改客户端一台机器，这样就可以设置一个过滤表达式ip host 192.168.153.100。设置好后点击Run按钮就会进行Running界面开始监听DNS包，并且在监听到符合条件的包之后按照设定返回DNS应答。
 
- ![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image24.png)
+![attack2](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image24.png)
 
 这时再在客户端dig example.com可以发现DNS应答已被篡改为恶意IP。**注意**！因为不能保证每次都是攻击者伪造的DNS应答早于正确DNS应答返回到客户端，所以客户端打开example.com时可能到达正确的页面，也可能变为访问我们伪造的恶意IP，不是百分百能成功的。
+
+## DNS Server Cache Poisoning
+
+前面我们采用抢先本地DNS服务器返回DNS应答的策略，但这个策略不是百分百能成功的。但是我们还可以利用一个漏洞，如果本地DNS服务器没有缓存客户端查询的域名-IP对，那么它就需要向再上级的DNS服务器提交查询，等待对方返回然后缓存到本地，下次客户端再问就可以直接返回了。如果我们在本地DNS服务器向上级查询的时候直接返回一个伪造的DNS应答包给本地DNS服务器，那么它就会把我们伪造包中的恶意IP当作是客户端请求域名对应的IP地址，存入到缓存中。这样以后每次客户端请求都会得到一个错误的IP地址，这就叫做DNS服务器缓存毒化，这种攻击方式要比前面一种好很多。 为了保证效果，我们可以先清空本地DNS服务器的缓存：
+
+![attack3](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image25.png)
+
+这里我们同样使用netwag的105工具包来实现：
+
+![attack3](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image26.png)
+
+![attack3](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image27.png)
+
+因为本地DNS服务器的缓存被毒化了，所以每一次请求bing.com，客户端都会被重定向到1.2.3.4，直到我们关闭netwag，并且在本地DNS服务器的对应条目TTL减少到0，条目被清除，需要再次向上级DNS服务器发出请求。
