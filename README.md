@@ -114,7 +114,7 @@ NAT（网络地址转换）模式是让虚拟机借助NAT的功能，通过宿�
 
 ![victim](https://raw.githubusercontent.com/familyld/Local-DNS-Attack/master/graph/image18.png)
 
-事实上，在实际配置我修改了IP地址后无法按实验指导书中的步骤进制DHCP，所以重启以后就失效了。所以索性直接在interfaces文件中指定DNS服务器就可以了，这和在resolv.conf中指定是一样的，只是interfaces的优先级更高。重启之后测试一下能连外网能互相ping通并且DNS服务器的设置生效就成功了。
+事实上，在实际配置我修改了IP地址后无法按实验指导书中的步骤禁止DHCP，所以重启以后就失效了。所以索性直接在interfaces文件中指定DNS服务器就可以了，这和在resolv.conf中指定是一样的，只是interfaces的优先级更高。重启之后测试一下能连外网能互相ping通并且DNS服务器的设置生效就成功了。
 
 ### 配置攻击者
 
